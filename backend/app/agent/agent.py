@@ -12,19 +12,19 @@ from .tools import build_health_tools
 
 load_dotenv()
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-
 
 class Agent:
     """Tool-using agent for evidence-grounded health explanations."""
 
     def __init__(self, summary: dict[str, Any]) -> None:
-        if not OPENAI_API_KEY:
+        load_dotenv()
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
             raise RuntimeError("OPENAI_API_KEY not configured")
         self.llm = ChatOpenAI(
             model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
             temperature=0,
-            api_key=OPENAI_API_KEY,
+            api_key=api_key,
         )
         self.tools = build_health_tools(summary)
         self.agent = create_agent(
@@ -51,7 +51,9 @@ class Agent:
                 for item in content
                 if isinstance(item, dict) and item.get("type") == "text"
             ]
-            return "\n".join(part for part in text_parts if part)
+            content = "\n".join(part for part in text_parts if part)
+        if not str(content).strip():
+            raise RuntimeError("Agent returned an empty response")
         return str(content)
 
 def answer_question(question: str, summary: dict[str, Any]) -> str:

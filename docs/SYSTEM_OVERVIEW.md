@@ -4,7 +4,7 @@
 
 HMS-cr8 is a prototype for monitoring physiological signals in an astronaut mission scenario. Its intended problem is helping an astronaut and mission health team review changing measurements, notice unusual patterns, and understand what data contributed to an alert when communication, time, and access to ground-based support may be constrained.
 
-The current application demonstrates a data pipeline and dashboard. It is **not an operational spaceflight medical system**, a diagnostic device, or a validated astronaut monitoring model. The data source currently wired into the application is VitalDB, a collection of surgical-patient recordings. Those recordings are useful for exercising the software pipeline, but they are not astronaut telemetry and must not be represented as such.
+The current application demonstrates a data pipeline and dashboard. It is **not an operational spaceflight medical system**, a diagnostic device, or a validated astronaut monitoring model. It uses VitalDB surgical-patient recordings to demonstrate physiological data handling and NASA OSDR Environmental Data Application records for historical ISS cabin context. Neither source provides a live astronaut feed, and their timelines must not be treated as synchronized.
 
 The product direction should stay mission-specific: support crew health monitoring and review during spaceflight. Avoid presenting generic disease diagnosis, treatment, or hospital workflows as product capabilities. Mission-specific thresholds, baselines, alert rules, and procedures need to come from qualified spaceflight medical and human-factors experts; the codebase does not currently provide them.
 
@@ -20,9 +20,18 @@ The current prototype can:
 - Return a health summary containing latest readings, data coverage, feature-window count, status, and detected unusual windows.
 - Display those results in a React dashboard with a measurement feed, trend chart, case selector, replay controls, model status, and assistant.
 - Offer 2D and 3D illustrative anatomy views with callouts for supported measurements.
+- Import historical ISS temperature, relative humidity, and CO₂ observations from NASA EDA into separate storage and display mission-labeled trends.
 - Let an LLM assistant inspect the summary through read-only tools and explain the evidence it finds.
 
 The application does not currently connect to a wearable or spacecraft sensor, receive real-time astronaut telemetry, have mission-qualified alert thresholds, calculate a validated health score, diagnose a condition, or provide medically approved treatment recommendations.
+
+## NASA environmental context
+
+The dashboard can import NASA EDA telemetry for RR-1 using NASA's documented API at https://visualization.osdr.nasa.gov/eda/api/missions/{mission}/telemetry_data/. It preserves the timestamp string, mission identifier, value, unit, and NASA source name. It imports ISS-side temperature, relative humidity, and CO₂ only; paired ground-control readings are excluded. A compact NASA response archive at frontend/public/data/nasa-eda-rr1.json contains the 12,087 RR-1 timestamps from 2014-09-20 through 2014-11-01 and is used as a visible UI fallback if the local backend is unavailable or has not yet been updated.
+
+NASA values are persisted in the environmental_measurements table, separate from VitalDB physiology. POST /ingest/nasa/eda/{mission} imports the NASA series; GET /environmental-measurements reads stored records with optional mission, metric, and limit filters. The dashboard labels the data as historical, identifies RR-1 as separate mission context, and keeps it out of the physiological anomaly model. It does not claim environmental causation.
+
+NASA EDA also documents a radiation data endpoint. Radiation is not yet ingested or shown: this initial integration focuses on the three telemetry fields and units verified for this UI; radiation needs its own verified schema, unit handling, and display.
 
 ## 3. System architecture
 

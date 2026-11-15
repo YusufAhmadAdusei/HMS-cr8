@@ -6,13 +6,15 @@ import os
 import time
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from openai import OpenAIError
 
 from .agent import Agent
 from .database import MeasurementStore
 from .health_analysis import build_health_summary
 from .ingestion import VitalDBClient
 from .logging_config import configure_logging
-from .models import AssistantRequest, IngestResponse, Measurement, ReplayRequest
+from .models import AssistantRequest, EnvironmentalMeasurement, IngestResponse, Measurement, ReplayRequest
+from .nasa_eda import NASA_EDA_SOURCE, NasaEdaClient
 from .simulation import apply_demo_scenario
 from ml.anomaly_detection import AnomalyDetector
 
@@ -36,6 +38,7 @@ app.add_middleware(
 )
 store = MeasurementStore()
 vitaldb = VitalDBClient()
+nasa_eda = NasaEdaClient()
 model_path = os.getenv("HMS_MODEL_PATH", "ml/model/isolation_forest.joblib")
 if os.path.exists(model_path):
     detector = AnomalyDetector.load(model_path)
@@ -102,6 +105,27 @@ def get_measurements(
     return measurements
 
 
+@app.get("/environmental-measurements", response_model=list[EnvironmentalMeasurement])
+def get_environmental_measurements(
+    mission: str | None = Query(default=None, min_length=1, max_length=40),
+    metric: str | None = Query(default=None, min_length=1, max_length=40),
+    limit: int = Query(default=1000, ge=1, le=50000),
+) -> list[EnvironmentalMeasurement]:
+    return store.environmental(mission=mission, metric=metric, limit=limit)
+
+
+@app.post("/ingest/nasa/eda/{mission}", response_model=IngestResponse)
+def ingest_nasa_eda(mission: str) -> IngestResponse:
+    try:
+        measurements = nasa_eda.fetch_telemetry(mission)
+    except (ValueError, httpx.HTTPError) as error:
+        logger.exception("nasa_eda_ingestion_failed mission=%s", mission)
+        raise HTTPException(status_code=502, detail=f"NASA EDA ingestion failed: {error}") from error
+    inserted = store.add_environmental_many(measurements)
+    logger.info("nasa_eda_ingestion_completed mission=%s received=%d inserted=%d", mission, len(measurements), inserted)
+    return IngestResponse(received=len(measurements), inserted=inserted, source=NASA_EDA_SOURCE)
+
+
 @app.get("/health-summary")
 def get_health_summary(case_id: str | None = Query(default=None)) -> dict:
     measurements = [
@@ -130,13 +154,18 @@ def assistant_explain(
     summary = build_health_summary(measurements, detector=detector)
     try:
         answer = Agent(summary).chat(request.question)
-    except RuntimeError as error:
+    except (RuntimeError, ValueError, OpenAIError) as error:
         logger.exception(
             "assistant_failed case_id=%s question_length=%d",
             case_id or "all",
             len(request.question),
         )
-        raise HTTPException(status_code=503, detail=str(error)) from error
+        detail = (
+            str(error)
+            if isinstance(error, RuntimeError)
+            else "Assistant service unavailable. Check the backend configuration and logs."
+        )
+        raise HTTPException(status_code=503, detail=detail) from error
     logger.info(
         "assistant_completed case_id=%s question_length=%d",
         case_id or "all",

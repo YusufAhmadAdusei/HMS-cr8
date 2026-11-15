@@ -15,6 +15,15 @@ class Measurement(BaseModel):
     source: str = "VitalDB"
 
 
+class EnvironmentalMeasurement(BaseModel):
+    mission: str = Field(min_length=1)
+    recorded_at: str = Field(min_length=1)
+    metric: str = Field(min_length=1)
+    value: float
+    unit: str = Field(min_length=1)
+    source: str = "NASA OSDR Environmental Data Application"
+
+
 class ReplayRequest(BaseModel):
     location: str = Field(default="OR1", min_length=1)
     track_code: str = Field(default="SNUADC/ECG_II", min_length=1)
@@ -32,4 +41,4 @@ class IngestResponse(BaseModel):
 class AssistantRequest(BaseModel):
     question: str = Field(min_length=1, max_length=2000)
 
-__all__ = ["AssistantRequest", "IngestResponse", "Measurement", "ReplayRequest"]
+__all__ = ["AssistantRequest", "EnvironmentalMeasurement", "IngestResponse", "Measurement", "ReplayRequest"]

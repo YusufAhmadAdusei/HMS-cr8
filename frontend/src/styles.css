@@ -22,6 +22,8 @@
 
 .heart-score-panel{min-height:150px}.score-live-dot{height:8px;width:8px;border-radius:50%;background:var(--mint);box-shadow:0 0 0 4px rgba(114,228,192,.1),0 0 11px rgba(114,228,192,.7)}.heart-score-content{display:grid;grid-template-columns:132px 1fr;align-items:center;gap:14px}.score-gauge{width:132px;height:132px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(from 225deg,var(--mint) 0 var(--score),rgba(112,141,151,.2) var(--score) 75%,transparent 75% 100%);transform:rotate(-45deg);position:relative}.score-gauge:after{content:"";position:absolute;inset:10px;border-radius:50%;background:#10232f}.score-gauge-inner{position:relative;z-index:1;transform:rotate(45deg);display:grid;justify-items:center;gap:3px;margin-top:8px}.score-gauge-inner:before{content:"♥";color:var(--coral);font-size:19px;line-height:1;text-shadow:0 0 10px rgba(255,113,137,.35)}.score-gauge-inner span{font-size:27px;font-weight:700;letter-spacing:-.07em}.score-gauge-inner small{font:7px var(--mono);color:#9aadb5;text-align:center;white-space:nowrap}.score-breakdown{display:grid;gap:8px}.score-row{display:flex;align-items:center;gap:7px;min-width:0}.score-row-icon{height:21px;width:21px;display:grid;place-items:center;flex:0 0 21px;border-radius:50%;background:rgba(255,113,137,.12);color:var(--coral);font-size:13px}.score-row-label{display:grid;gap:2px;min-width:0;flex:1;font-size:9px;color:#cad8dd}.score-row-label small{font:8px var(--mono);color:#829aa5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.score-rating{font:8px var(--mono);font-weight:500;color:var(--mint)}.score-good{color:#8edfc5}.score-review{color:#ff9eaf}.score-waiting{color:#829aa5}.score-disclaimer{margin-top:11px;font-size:7px;color:#718994}
 
+.space-background{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.72;background:radial-gradient(ellipse at 18% 18%,rgba(55,87,139,.18),transparent 34%),radial-gradient(ellipse at 82% 78%,rgba(75,42,120,.16),transparent 38%)}.app-shell{position:relative;z-index:1}.app-shell>*:not(.space-background){position:relative;z-index:1}
+
 @media(max-width:520px){.heart-score-content{grid-template-columns:124px 1fr;gap:9px}.score-gauge{width:124px;height:124px}.score-gauge-inner span{font-size:25px}.score-row{gap:5px}.score-row-label{font-size:8px}.score-rating{font-size:7px}}
 
 /* Mission-console presentation: coverage is a data availability display, not a health score. */
@@ -71,6 +73,7 @@
 .replay-speed-label select{border:1px solid var(--line);border-radius:6px;background:#10232f;color:#d7e6e9;padding:5px 6px;font-size:8px}
 .replay-position-time{color:#a5bbc3;font:8px var(--mono);white-space:nowrap}
 .replay-live-button{color:#a4eed8;border:1px solid rgba(114,228,192,.18);white-space:nowrap}
+.assistant-gate{display:grid;gap:12px}.assistant-open-button{width:max-content;border:1px solid rgba(114,228,192,.3);border-radius:8px;background:rgba(114,228,192,.1);color:#a4eed8;padding:8px 11px;font-size:9px}.assistant-open-button:hover{background:rgba(114,228,192,.18)}
 .body-callout{pointer-events:auto;cursor:pointer;text-align:left;color:#edf7f7;font-family:inherit;transition:border-color .15s,transform .15s}
 .body-callout:hover{border-color:rgba(140,235,214,.72);transform:translateY(-1px)}
 .body-callout-3d:hover{transform:scale(1.03)}
@@ -81,3 +84,5 @@
 .demo-tick-status.running span{background:var(--mint);box-shadow:0 0 0 4px rgba(114,228,192,.09),0 0 10px rgba(114,228,192,.65);animation:demoPulse 1s ease-in-out infinite alternate}
 @keyframes demoPulse{from{opacity:.55}to{opacity:1}}
 @media(prefers-reduced-motion:reduce){.demo-tick-status.running span{animation:none}}
+
+.nasa-environment-panel{margin-top:12px;min-width:0}.nasa-context-note{max-width:1050px;margin:0 0 13px;color:#91aab4;font-size:10px;line-height:1.55}.nasa-environment-panel .panel-heading{align-items:center}.nasa-environment-panel .trend-controls{align-items:center}.nasa-environment-panel .trend-metric-switch{flex-wrap:wrap}.nasa-environment-panel .chart-meta{max-width:55%;text-align:right;overflow-wrap:anywhere}.nasa-environment-panel .chart-line{stroke:#70e2c1}.nasa-environment-panel .chart-footnote a{color:#91dec9;text-decoration:underline;text-underline-offset:2px}.nasa-environment-panel .chart-wrap{height:220px}

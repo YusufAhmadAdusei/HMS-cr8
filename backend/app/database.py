@@ -4,7 +4,7 @@ import sqlite3
 from pathlib import Path
 from typing import Iterable
 
-from .models import Measurement
+from .models import EnvironmentalMeasurement, Measurement
 
 
 SCHEMA = """
@@ -20,6 +20,18 @@ CREATE TABLE IF NOT EXISTS measurements (
 );
 CREATE INDEX IF NOT EXISTS idx_measurements_case_time
     ON measurements(case_id, recorded_at);
+CREATE TABLE IF NOT EXISTS environmental_measurements (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    mission TEXT NOT NULL,
+    recorded_at TEXT NOT NULL,
+    metric TEXT NOT NULL,
+    value REAL NOT NULL,
+    unit TEXT NOT NULL,
+    source TEXT NOT NULL,
+    UNIQUE(mission, recorded_at, metric, source)
+);
+CREATE INDEX IF NOT EXISTS idx_environment_mission_time
+    ON environmental_measurements(mission, recorded_at);
 """
 
 
@@ -81,5 +93,38 @@ class MeasurementStore:
                 "SELECT DISTINCT case_id FROM measurements ORDER BY case_id"
             ).fetchall()
         return [str(row["case_id"]) for row in rows]
+
+    def add_environmental_many(self, measurements: Iterable[EnvironmentalMeasurement]) -> int:
+        rows = [
+            (item.mission, item.recorded_at, item.metric, item.value, item.unit, item.source)
+            for item in measurements
+        ]
+        if not rows:
+            return 0
+        with self._connect() as connection:
+            cursor = connection.executemany(
+                """INSERT OR IGNORE INTO environmental_measurements
+                   (mission, recorded_at, metric, value, unit, source) VALUES (?, ?, ?, ?, ?, ?)""",
+                rows,
+            )
+            return cursor.rowcount
+
+    def environmental(self, mission: str | None = None, metric: str | None = None, limit: int = 1000) -> list[EnvironmentalMeasurement]:
+        query = "SELECT mission, recorded_at, metric, value, unit, source FROM environmental_measurements"
+        clauses: list[str] = []
+        parameters: list[object] = []
+        if mission is not None:
+            clauses.append("mission = ?")
+            parameters.append(mission)
+        if metric is not None:
+            clauses.append("metric = ?")
+            parameters.append(metric)
+        if clauses:
+            query += " WHERE " + " AND ".join(clauses)
+        query += " ORDER BY recorded_at DESC LIMIT ?"
+        parameters.append(limit)
+        with self._connect() as connection:
+            rows = connection.execute(query, parameters).fetchall()
+        return [EnvironmentalMeasurement.model_validate(dict(row)) for row in rows]
 
 __all__ = ["MeasurementStore"]
