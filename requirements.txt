@@ -9,5 +9,6 @@ pydantic>=2,<3
 pyarrow>=17,<23
 python-dotenv>=1,<2
 scikit-learn>=1.5,<2
+transformers>=4.46,<6
 vitaldb==1.7.2
 uvicorn[standard]>=0.30,<1
