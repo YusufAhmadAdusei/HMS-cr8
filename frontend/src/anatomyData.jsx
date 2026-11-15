@@ -26,7 +26,7 @@ function valueText(metric, companion) {
   return `${text(metric)}${metric.unit ? ` ${metric.unit}` : ""}`;
 }
 
-export function ValueLabel({ item, metrics, className = "", style }) {
+export function ValueLabel({ item, metrics, className = "", style, onSelect }) {
   const metric = item.key === "Solar8000/NIBP_SBP"
     ? metrics[item.key] || metrics["Solar8000/NIBP_DBP"]
     : metrics[item.key];
@@ -36,9 +36,9 @@ export function ValueLabel({ item, metrics, className = "", style }) {
   const date = metric?.recorded_at
     ? new Date(metric.recorded_at).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })
     : "";
-  return <div className={`body-callout ${className}`} style={style}>
+  return <button type="button" className={`body-callout ${className}`} style={style} onClick={() => onSelect?.(item.key)} aria-label={`Show ${metricLabels[item.key]} trend`}>
     <span>{metricLabels[item.key]}</span>
     <strong>{valueText(metric, diastolic)}</strong>
     {date && <small>{date}</small>}
-  </div>;
+  </button>;
 }

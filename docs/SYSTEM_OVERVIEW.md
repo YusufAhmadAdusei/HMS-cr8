@@ -143,17 +143,18 @@ The dashboard is a single scrollable overview. Start at the top; on smaller scre
 ### Header
 
 - **HMS-cr8 / Health signals** — brand link; returns to the top of the dashboard.
-- **Replay running / Replay paused** — indicates whether the browser is scheduling replay requests. It reflects the UI polling switch, not a live astronaut/device telemetry connection.
-- **VitalDB replay · not crew telemetry** — identifies the prototype source and makes the data limitation visible in the header.
+- **1-sec demo stream / Demo paused** — in simulation mode, reports whether local synthetic display values are advancing. In recorded mode, the header reports whether VitalDB replay polling is active.
+- **Source label** — simulation mode says `SIMULATED VALUES · NOT TELEMETRY`; recorded mode identifies VitalDB replay and says it is not crew telemetry.
 - **Refresh button (↻)** — reloads health, cases, summary, and recent measurement data from the API. It does not request a new VitalDB window.
 - **Ingest window** — requests the next ten-second replay window for each configured metric. While running, the button reads “Collecting…”. A result notice reports sample and track counts, including unavailable tracks.
-- **Replay cadence** — set automatic requests to every five or ten seconds. Each request still asks for a ten-second source window, so the shorter cadence advances the recorded replay faster and increases request frequency; it does not make the source live.
-- **Pause / Resume** — stops or restarts automatic replay polling. Use **Ingest window** for a one-off request while paused.
+- **Display mode** — the default **1-sec demo stream** synthesizes a rolling stream locally, using the selected case's latest values as baselines or clearly labeled demo seeds when data is unavailable. It is never persisted and is not submitted to the model or assistant. **Recorded data** switches to stored source measurements and enables replay polling.
+- **Replay cadence** — visible in recorded mode; set automatic VitalDB requests to every five or ten seconds. Each request still asks for a ten-second source window, so the shorter cadence advances recorded replay faster and increases request frequency; it does not make the source live.
+- **Pause / Resume** — pauses the local one-second demo stream in simulation mode, or stops/restarts automatic source polling in recorded mode. Use **Ingest window** for a one-off source request.
 
 ### Monitoring workspace controls
 
-- **Mission signals overview** — crew-monitoring presentation over a replay environment. The subheading states that no live crew link is connected.
-- **Replay case selector** — choose a stored case ID to filter the selected case's summary, metric cards, body callouts, and trend. “All cases” asks the summary/feed for all cases; the central/left latest-reading cards choose the most recently represented case to avoid mixing different cases into one body diagram. For careful review, select a specific case.
+- **Mission signals overview** — crew-monitoring presentation. The subheading explains whether the screen is showing a local demo stream or recorded values.
+- **Replay case selector** — choose a stored case ID. In recorded mode it filters the summary and measurements; in demo mode the latest values for that case seed the local synthetic stream. “All cases” uses the most recent case as the demo baseline rather than combining cases.
 - **Replay scenario** — choose `Recorded values` or a labeled demo transformation (`tachycardia`, `hypoxia`, `hypotension`). The chosen scenario is used on the next ingest request. It does not automatically alter already stored measurements. A demo scenario modifies replayed samples and is not real telemetry.
 - **Error / success notices** — API and ingestion errors are displayed here; a successful ingestion notice describes how many samples/tracks were received and names the scenario.
 
@@ -161,20 +162,20 @@ The dashboard is a single scrollable overview. Start at the top; on smaller scre
 
 The overview is arranged as three visual regions: left-side signal cards, a central anatomy panel, and right-side analysis/assistant cards.
 
-- **Heart rate — Latest reading:** shows the latest heart-rate value and timestamp available for the focused case. The small sparkline uses up to the last 28 recorded heart-rate samples. If there are no readings, it shows an awaiting/empty state.
-- **Health metrics — Latest by signal:** lists the latest available value for each metric in the focused case, including source metric codes mapped to readable names. Select a row to jump to that signal's chart. Units are shown where the source provides them. The “available” count counts metrics, not sample quality or clinical normality.
-- **Telemetry availability / Signal coverage:** shows how many of six configured signal types have a latest measurement for the focused case. Each row says whether that reading is available and displays its value or “No reading.” The ring is a coverage fraction only; it does not use heart-rate thresholds, model anomaly count, or imply health, normality, or readiness.
-- **Signals at a glance — anatomy panel:** switches between **2D** and **3D**. Only callouts for metrics present in the focused case are displayed. Each callout shows the latest corresponding value, source unit when available, and timestamp. Select a callout to jump to that signal's chart. The line endpoints are illustrative coordinates, not a representation of sensor placement or internal physiology.
+- **Heart rate — Latest reading:** displays the current selected-mode value and timestamp. In demo mode it changes once per second with a rolling simulated sparkline. In recorded mode it shows the latest source value and timestamp.
+- **Health metrics / Demo values — Latest by signal:** lists the latest value per configured metric. Select a row to jump to its chart. Demo mode uses generated values; recorded mode displays source values and units.
+- **Signal coverage / Simulated signals:** recorded mode shows how many of six configured signals have a latest measurement. Demo mode shows generated values and `1 Hz`; neither view implies health, normality, or readiness.
+- **Signals at a glance — anatomy panel:** switches between **2D** and **3D**. Callouts show the current selected-mode value and timestamp. Select a callout to jump to its signal's chart. The line endpoints are illustrative coordinates, not a representation of sensor placement or internal physiology.
   - In **2D**, the supplied full-body illustration fills the panel and SVG connector lines point to approximate body regions.
   - In **3D**, the locally hosted model is rendered in the browser. Drag to rotate and use a wheel/pinch gesture to zoom. The view controls disable panning. If WebGL/model loading fails, use the “Show 2D view” fallback. The model preview appears while the 3D asset loads.
-- **Anomaly model output — Pattern analysis:** shows whether the model is available, number of flagged model windows, and feature-window count. Up to three detected windows are listed with case, time, and raw detector score. Select a window to focus its case and move the trend review cursor to the nearest available heart-rate sample. Matching windows appear as shaded intervals on the chart when their measurements are in the visible range. “No anomaly flagged” only means none were returned by the current pipeline; it is not a medical all-clear. “Model unavailable” means model-based anomaly detection is unavailable in this backend process.
-- **Ask the monitoring assistant:** enter a question (up to 2,000 characters) and choose **Ask**. The backend gives the assistant the selected summary and read-only tools to inspect its status, latest values, and detected anomaly windows. The answer appears in the card. It requires `OPENAI_API_KEY`; errors appear in the page notice. Do not use the response for diagnosis or mission decisions.
+- **Anomaly model output — Pattern analysis:** shows analysis of stored data only. Synthetic demo values are never scored. Selecting a flagged window switches to recorded mode, focuses its case, and moves the review cursor to the nearest available heart-rate sample.
+- **Ask the monitoring assistant:** available only in recorded mode because the assistant receives stored source summaries, not generated demo values. Enter a question (up to 2,000 characters) and choose **Ask**. It requires `OPENAI_API_KEY`; errors appear in the page notice. Do not use the response for diagnosis or mission decisions.
 
 ### Trend and measurement history
 
-- **Signal trend:** spans the lower chart row and plots the selected signal's recorded values against timestamps for the focused case. Select a metric, choose a 1-, 5-, or 15-minute window or all loaded data, hover for a value/time tooltip, or click a point to move the review cursor. Use arrow keys when the chart is focused to inspect points. Shaded intervals mark model-flagged windows when they overlap the loaded points.
-- **Review playback controls:** use **Play review**, **Pause review**, and the range slider to browse samples already loaded in the selected case; choose 0.5×, 1×, 2×, or 4× review speed. **Latest** returns to the newest loaded point. This is client-side browsing of stored replay samples; it does not control VitalDB's source speed or add new data. The chart can only show the recent rows returned by the API (up to 100 for this dashboard) and does not fill gaps or interpolate values.
-- **Latest measurements — Signal feed:** a table of up to twelve latest measurement rows with signal, value, case, recorded time, and source. This feed helps inspect provenance and compare cases; when “All cases” is selected, rows can belong to more than one case. The source column distinguishes VitalDB replay and labeled scenario-modified data.
+- **Signal trend:** plots the selected signal against timestamps. Select a metric, hover for a value/time tooltip, or click a point to inspect it. Demo mode shows a rolling one-minute generated trace; recorded mode offers 1-, 5-, and 15-minute windows or all loaded data. Use arrow keys to inspect recorded points; shaded intervals mark flagged windows in recorded mode.
+- **Review playback controls:** in recorded mode, browse loaded samples with **Play review**, **Pause review**, the slider, and 0.5×–4× speed. **Latest** returns to the newest loaded point. This does not add data. The chart shows up to 100 recent rows and does not interpolate missing values.
+- **Signal feed:** recorded mode lists stored measurements and provenance. Demo mode shows current synthetic values with `LOCAL-DEMO` case identity and `Local 1-second demo simulation` source; these rows are not written to the database.
 - **Footer:** repeats the prototype/telemetry limitation and shows the summary generation time when available. “Summary” is a calculation timestamp, not a guarantee that a sensor measurement was taken at that moment.
 
 ### Suggested review path
@@ -227,7 +228,7 @@ npm run dev
 
 The frontend defaults to `http://localhost:8000` for the API. Set `VITE_API_URL` in `frontend/.env` to use another backend. Configure backend `CORS_ORIGINS` to include the frontend origin if they are hosted separately. To enable assistant responses, configure `OPENAI_API_KEY` for the backend. To enable anomaly inference, provide a trained model at the default path or set `HMS_MODEL_PATH`.
 
-The dashboard starts replaying automatically by default with a five-second polling cadence. Change it to ten seconds or pause replay; use **Ingest window** to request a window manually. The review playback control only scrubs data already loaded in the browser. Choose a named demo scenario only when intentionally demonstrating the alert pathway.
+The dashboard opens in local one-second simulation mode. Choose **Recorded data** to display VitalDB records and start five-second replay polling; change it to ten seconds or pause source polling. Generated values are not saved and are not sent to the anomaly model or assistant. Use **Ingest window** to request a VitalDB window manually. In recorded mode, review playback scrubs data already loaded in the browser.
 
 ## 9. Astronaut-specific changes needed before operational use
 

@@ -1,5 +1,7 @@
 # HMS-cr8
 
+For the full system description, data flow, current limitations, and astronaut-specific requirements, see [docs/SYSTEM_OVERVIEW.md](docs/SYSTEM_OVERVIEW.md).
+
 ## Backend
 
 The backend is a single FastAPI application under `backend/app/`. It ingests
@@ -39,12 +41,16 @@ FastAPI deployment, copy `frontend/.env.example` to `frontend/.env` and set
 `VITE_API_URL`. Configure the backend `CORS_ORIGINS` value with the dashboard
 origin when the frontend and API are hosted separately.
 
-Use **Ingest replay** in the dashboard to request the next ten-second VitalDB
-window. It requests the supported physiological tracks, stores the returned
-measurements in SQLite, and refreshes the health summary and model output.
-The dashboard does not invent sensor values when a track is unavailable.
-Live replay is enabled by default and requests another window every ten
-seconds; it can be paused from the dashboard.
+The dashboard opens in **1-sec demo stream** mode so displayed values and
+graphs update once per second. These synthetic values use the selected case's
+latest values as a baseline (or labeled demo seeds if unavailable); they are
+not measurements, are never stored, and are not sent to the anomaly model or
+assistant. Select **Recorded data** to view stored VitalDB measurements.
+Recorded replay polling then runs at a five-second cadence by default; choose
+a ten-second cadence or pause it. **Ingest window** manually requests another
+ten-second VitalDB source window and stores the returned measurements in
+SQLite. Chart metric/range selection, point inspection, anomaly focus, and
+review playback are also available.
 
 The replay scenario selector includes labeled demo inputs for `tachycardia`,
 `hypoxia`, and `hypotension`. These transform the replayed values only for

@@ -14,14 +14,14 @@ class ViewerErrorBoundary extends Component {
   }
 }
 
-export default function AnatomyPanel({ metrics, caseId }) {
+export default function AnatomyPanel({ metrics, caseId, onMetricSelect }) {
   const [view, setView] = useState("2d");
   const visibleCallouts = bodyCallouts.filter((item) => item.key === "Solar8000/NIBP_SBP"
     ? metrics[item.key] || metrics["Solar8000/NIBP_DBP"]
     : metrics[item.key]);
   return <section className="panel body-panel" aria-label="Body overview with available measurements">
     <div className="panel-heading body-heading">
-      <div><p className="eyebrow">{caseId ? `Case ${caseId} overview` : "Patient overview"}</p><h2>Signals at a glance</h2></div>
+      <div><p className="eyebrow">{caseId === "LOCAL-DEMO" ? "Local demo simulation" : caseId ? `Replay case ${caseId}` : "Replay overview"}</p><h2>Signals at a glance</h2></div>
       <div className="anatomy-tools">
         <span className="illustration-note">{view === "3d" ? "Drag to rotate · pinch to zoom" : "Illustrative body map"}</span>
         <div className="view-toggle" role="group" aria-label="Anatomy view">
@@ -41,11 +41,11 @@ export default function AnatomyPanel({ metrics, caseId }) {
             return <g key={item.key}><polyline points={`${startX},${item.labelY} ${elbowX},${item.labelY} ${x},${y}`} /><circle cx={x} cy={y} r="5" /></g>;
           })}
         </svg>
-        <div className="body-labels body-labels-left">{visibleCallouts.filter((item) => item.side === "left").map((item) => <ValueLabel key={item.key} item={item} metrics={metrics} style={{ top: `${item.labelY / 700 * 100}%` }} />)}</div>
-        <div className="body-labels body-labels-right">{visibleCallouts.filter((item) => item.side === "right").map((item) => <ValueLabel key={item.key} item={item} metrics={metrics} style={{ top: `${item.labelY / 700 * 100}%` }} />)}</div>
+        <div className="body-labels body-labels-left">{visibleCallouts.filter((item) => item.side === "left").map((item) => <ValueLabel key={item.key} item={item} metrics={metrics} onSelect={onMetricSelect} style={{ top: `${item.labelY / 700 * 100}%` }} />)}</div>
+        <div className="body-labels body-labels-right">{visibleCallouts.filter((item) => item.side === "right").map((item) => <ValueLabel key={item.key} item={item} metrics={metrics} onSelect={onMetricSelect} style={{ top: `${item.labelY / 700 * 100}%` }} />)}</div>
       </> : <ViewerErrorBoundary key="3d" onFallback={() => setView("2d")}>
         <Suspense fallback={<div className="viewer-loading">Loading interactive 3D model…</div>}>
-          <Anatomy3DViewer metrics={metrics} />
+          <Anatomy3DViewer metrics={metrics} onMetricSelect={onMetricSelect} />
         </Suspense>
       </ViewerErrorBoundary>}
     </div>
