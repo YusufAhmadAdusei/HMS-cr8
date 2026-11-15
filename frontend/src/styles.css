@@ -57,12 +57,14 @@ h3 { font-size: 18px; letter-spacing: -0.03em; }
 .source-label { color: #9fb3c9; font-size: 12px; gap: 8px; }
 .live-dot { background: #8be6c5; border-radius: 50%; box-shadow: 0 0 0 4px rgba(139, 230, 197, .1); height: 7px; width: 7px; }
 .ghost-button { background: transparent; border: 1px solid #30445a; border-radius: 7px; color: #c1d0df; font-size: 12px; padding: 9px 13px; }
+.ghost-button:disabled { color: #61758b; cursor: wait; opacity: .7; }
 .ghost-button:hover { border-color: #8be6c5; color: #8be6c5; }
 
 .dashboard { margin: 0 auto; max-width: 1440px; padding: 62px clamp(20px, 5vw, 72px) 40px; }
 .hero-row { align-items: end; display: flex; justify-content: space-between; margin-bottom: 42px; }
 .hero-copy { color: #8299b0; font-size: 14px; margin-top: 16px; }
 .hero-row .eyebrow { margin-bottom: 14px; }
+.control-row { display: flex; gap: 12px; }
 .case-picker { display: grid; gap: 9px; min-width: 200px; }
 .case-picker select, .assistant-form input {
   background: #0c1a2a; border: 1px solid #263b51; border-radius: 7px; color: #e7eef8; outline: none; padding: 12px;
@@ -113,4 +115,4 @@ td:first-child { color: #e1eaf3; } .value-cell { color: #8be6c5; font-family: "D
 footer { color: #526b83; display: flex; font-family: "DM Mono", monospace; font-size: 10px; justify-content: space-between; margin: 0 auto; max-width: 1440px; padding: 0 clamp(20px, 5vw, 72px) 28px; }
 
 @media (max-width: 900px) { .metric-grid { grid-template-columns: repeat(2, 1fr); } .content-grid, .bottom-grid { grid-template-columns: 1fr; } }
-@media (max-width: 600px) { .topbar, .hero-row { align-items: start; flex-direction: column; gap: 22px; } .topbar-actions { justify-content: space-between; width: 100%; } .dashboard { padding-top: 38px; } .metric-grid { grid-template-columns: 1fr 1fr; } .metric-card { min-height: 125px; padding: 16px; } .metric-card strong { font-size: 20px; } footer { flex-direction: column; gap: 8px; } }
+@media (max-width: 600px) { .topbar, .hero-row { align-items: start; flex-direction: column; gap: 22px; } .topbar-actions, .control-row { flex-wrap: wrap; } .topbar-actions { justify-content: space-between; width: 100%; } .dashboard { padding-top: 38px; } .metric-grid { grid-template-columns: 1fr 1fr; } .metric-card { min-height: 125px; padding: 16px; } .metric-card strong { font-size: 20px; } footer { flex-direction: column; gap: 8px; } }

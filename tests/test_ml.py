@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+import json
 
 import pandas as pd
 
@@ -75,6 +76,7 @@ def test_anomaly_detector_requires_training_and_round_trips(tmp_path) -> None:
     results = restored.predict(windows.iloc[:2])
     assert len(results) == 2
     assert all(result.case_id == "5871" for result in results)
+    json.dumps([result.__dict__ for result in results])
 
 
 def test_training_pipeline_keeps_cases_in_one_split(tmp_path) -> None:

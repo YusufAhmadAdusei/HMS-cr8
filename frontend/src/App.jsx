@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(
   /\/$/,
@@ -21,6 +21,13 @@ const replayTracks = [
   "Solar8000/PLETH_SPO2",
   "Solar8000/BT",
   "Solar8000/RR",
+];
+
+const replayScenarios = [
+  { value: "normal", label: "Normal replay" },
+  { value: "tachycardia", label: "Demo: tachycardia" },
+  { value: "hypoxia", label: "Demo: hypoxia" },
+  { value: "hypotension", label: "Demo: hypotension" },
 ];
 
 async function request(path, options = {}) {
@@ -63,6 +70,7 @@ function App() {
   const [health, setHealth] = useState(null);
   const [cases, setCases] = useState([]);
   const [selectedCase, setSelectedCase] = useState("");
+  const [scenario, setScenario] = useState("normal");
   const [summary, setSummary] = useState(null);
   const [measurements, setMeasurements] = useState([]);
   const [question, setQuestion] = useState("");
@@ -72,6 +80,9 @@ function App() {
   const [assistantLoading, setAssistantLoading] = useState(false);
   const [error, setError] = useState("");
   const [replayMessage, setReplayMessage] = useState("");
+  const [liveReplay, setLiveReplay] = useState(true);
+  const replayBusyRef = useRef(false);
+  const initialReplayStartedRef = useRef(false);
 
   const caseQuery = selectedCase
     ? `?case_id=${encodeURIComponent(selectedCase)}`
@@ -103,7 +114,9 @@ function App() {
     loadDashboard();
   }, [loadDashboard]);
 
-  async function ingestReplay() {
+  const ingestReplay = useCallback(async () => {
+    if (replayBusyRef.current) return;
+    replayBusyRef.current = true;
     setReplayLoading(true);
     setError("");
     setReplayMessage("");
@@ -125,6 +138,7 @@ function App() {
               location: "OR1",
               track_code: trackCode,
               window_seconds: 10,
+              scenario,
               ...(nextAt ? { at: nextAt } : {}),
             }),
           }),
@@ -146,15 +160,30 @@ function App() {
       setReplayMessage(
         `${received} samples received across ${successful.length} of ${replayTracks.length} tracks${
           failed.length ? `; ${failed.length} unavailable` : ""
-        }.`,
+        }. Scenario: ${scenario}.`,
       );
       await loadDashboard();
     } catch (requestError) {
       setError(requestError.message);
     } finally {
       setReplayLoading(false);
+      replayBusyRef.current = false;
     }
-  }
+  }, [loadDashboard, measurements, scenario]);
+
+  useEffect(() => {
+    if (loading || !liveReplay || initialReplayStartedRef.current) return;
+    initialReplayStartedRef.current = true;
+    void ingestReplay();
+  }, [ingestReplay, liveReplay, loading]);
+
+  useEffect(() => {
+    if (!liveReplay) return undefined;
+    const interval = window.setInterval(() => {
+      void ingestReplay();
+    }, 10_000);
+    return () => window.clearInterval(interval);
+  }, [ingestReplay, liveReplay]);
 
   const latestMeasurements = useMemo(
     () =>
@@ -212,6 +241,12 @@ function App() {
           >
             {replayLoading ? "Collecting..." : "Ingest replay"}
           </button>
+          <button
+            className="ghost-button"
+            onClick={() => setLiveReplay((active) => !active)}
+          >
+            {liveReplay ? "Pause live" : "Start live"}
+          </button>
         </div>
       </header>
 
@@ -224,20 +259,35 @@ function App() {
               Real-time replay monitoring with case-aware anomaly detection.
             </p>
           </div>
-          <label className="case-picker">
-            <span>Monitoring case</span>
-            <select
-              value={selectedCase}
-              onChange={(event) => setSelectedCase(event.target.value)}
-            >
-              <option value="">All cases</option>
-              {cases.map((caseId) => (
-                <option key={caseId} value={caseId}>
-                  Case {caseId}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className="control-row">
+            <label className="case-picker">
+              <span>Monitoring case</span>
+              <select
+                value={selectedCase}
+                onChange={(event) => setSelectedCase(event.target.value)}
+              >
+                <option value="">All cases</option>
+                {cases.map((caseId) => (
+                  <option key={caseId} value={caseId}>
+                    Case {caseId}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="case-picker">
+              <span>Replay scenario</span>
+              <select
+                value={scenario}
+                onChange={(event) => setScenario(event.target.value)}
+              >
+                {replayScenarios.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
         </section>
 
         {error && <div className="error-banner">{error}</div>}

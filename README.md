@@ -43,6 +43,13 @@ Use **Ingest replay** in the dashboard to request the next ten-second VitalDB
 window. It requests the supported physiological tracks, stores the returned
 measurements in SQLite, and refreshes the health summary and model output.
 The dashboard does not invent sensor values when a track is unavailable.
+Live replay is enabled by default and requests another window every ten
+seconds; it can be paused from the dashboard.
+
+The replay scenario selector includes labeled demo inputs for `tachycardia`,
+`hypoxia`, and `hypotension`. These transform the replayed values only for
+testing the anomaly path and store them with a `VitalDB replay simulation: ...`
+source. They are not raw VitalDB measurements or clinical diagnoses.
 
 Core endpoints:
 

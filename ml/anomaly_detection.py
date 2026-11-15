@@ -64,7 +64,7 @@ class AnomalyDetector:
             results.append(
                 AnomalyResult(
                     case_id=str(row["case_id"]) if "case_id" in row and pd.notna(row["case_id"]) else None,
-                    detected=prediction == -1,
+                    detected=bool(prediction == -1),
                     score=float(score),
                     window_start=_as_iso(row["window_start"]),
                     window_end=_as_iso(row["window_end"]),

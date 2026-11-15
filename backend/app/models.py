@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -19,6 +20,7 @@ class ReplayRequest(BaseModel):
     track_code: str = Field(default="SNUADC/ECG_II", min_length=1)
     window_seconds: int = Field(default=10, ge=1, le=300)
     at: datetime | None = None
+    scenario: Literal["normal", "tachycardia", "hypoxia", "hypotension"] = "normal"
 
 
 class IngestResponse(BaseModel):

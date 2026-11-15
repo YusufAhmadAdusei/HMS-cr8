@@ -13,6 +13,7 @@ from .health_analysis import build_health_summary
 from .ingestion import VitalDBClient
 from .logging_config import configure_logging
 from .models import AssistantRequest, IngestResponse, Measurement, ReplayRequest
+from .simulation import apply_demo_scenario
 from ml.anomaly_detection import AnomalyDetector
 
 
@@ -150,21 +151,29 @@ def ingest_replay(request: ReplayRequest) -> IngestResponse:
         measurements = vitaldb.fetch_replay(
             request.location, request.track_code, request.window_seconds, request.at
         )
+        measurements = apply_demo_scenario(measurements, request.scenario)
     except (ValueError, httpx.HTTPError) as error:
         logger.exception(
-            "vitaldb_ingestion_failed location=%s track=%s",
+            "vitaldb_ingestion_failed location=%s track=%s scenario=%s",
             request.location,
             request.track_code,
+            request.scenario,
         )
         raise HTTPException(status_code=502, detail=f"VitalDB ingestion failed: {error}") from error
     inserted = store.add_many(measurements)
     logger.info(
-        "vitaldb_ingestion_completed location=%s track=%s received=%d inserted=%d",
+        "vitaldb_ingestion_completed location=%s track=%s scenario=%s received=%d inserted=%d",
         request.location,
         request.track_code,
+        request.scenario,
         len(measurements),
         inserted,
     )
+    source = (
+        "VitalDB virtual replay"
+        if request.scenario == "normal"
+        else f"VitalDB replay simulation: {request.scenario}"
+    )
     return IngestResponse(
-        received=len(measurements), inserted=inserted, source="VitalDB virtual replay"
+        received=len(measurements), inserted=inserted, source=source
     )
