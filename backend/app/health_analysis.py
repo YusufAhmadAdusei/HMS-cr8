@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import logging
 from typing import Any
 
 import pandas as pd
@@ -16,6 +17,7 @@ EXPECTED_METRICS = {
     "Solar8000/BT",
     "Solar8000/RR",
 }
+logger = logging.getLogger(__name__)
 
 
 def build_health_summary(
@@ -45,6 +47,13 @@ def build_health_summary(
     else:
         analysis_status = "complete"
         status = "attention" if active_anomalies else "monitoring"
+    logger.debug(
+        "summary_features measurements=%d windows=%d anomalies=%d status=%s",
+        len(measurements),
+        len(windows),
+        len(active_anomalies),
+        status,
+    )
     return {
         "status": status,
         "analysis_status": analysis_status,

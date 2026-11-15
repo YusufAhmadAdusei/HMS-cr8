@@ -11,6 +11,18 @@ python -m pip install -r requirements.txt
 python -m uvicorn backend.app.main:app --reload
 ```
 
+Backend logs are written to the process output. Set `LOG_LEVEL=DEBUG` for
+feature-level diagnostics; the default level is `INFO`:
+
+```powershell
+$env:LOG_LEVEL = "DEBUG"
+python backend\run.py
+```
+
+Request logs include the HTTP method, route, status code, and duration.
+VitalDB logs include the requested location and track, response status, and
+measurement counts. Secrets and assistant message contents are not logged.
+
 ## Dashboard
 
 The React/Vite dashboard is under `frontend/`. Start the backend first, then

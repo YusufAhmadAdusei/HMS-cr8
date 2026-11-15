@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+import logging
 from typing import Any
 
 import httpx
@@ -9,6 +10,7 @@ from .models import Measurement
 
 VITALDB_REPLAY_URL = "https://api.vitaldb.net/fhir/Location/{location}/$sample"
 SOURCE_NAME = "VitalDB virtual replay"
+logger = logging.getLogger(__name__)
 
 
 class VitalDBClient:
@@ -22,6 +24,13 @@ class VitalDBClient:
         window_seconds: int,
         at: datetime | None = None,
     ) -> list[Measurement]:
+        logger.info(
+            "vitaldb_request location=%s track=%s window_seconds=%d at=%s",
+            location,
+            track_code,
+            window_seconds,
+            at.isoformat() if at else "latest",
+        )
         params: dict[str, Any] = {
             "code": track_code,
             "window": window_seconds,
@@ -34,7 +43,15 @@ class VitalDBClient:
             timeout=self.timeout,
         )
         response.raise_for_status()
-        return parse_replay_payload(response.json(), track_code)
+        measurements = parse_replay_payload(response.json(), track_code)
+        logger.info(
+            "vitaldb_response location=%s track=%s status=%d measurements=%d",
+            location,
+            track_code,
+            response.status_code,
+            len(measurements),
+        )
+        return measurements
 
 
 def parse_replay_payload(payload: Any, track_code: str) -> list[Measurement]:
