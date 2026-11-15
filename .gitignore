@@ -1,0 +1,114 @@
+# =========================
+# Environment variables & secrets
+# =========================
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+credentials/
+service-account*.json
+
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+ENV/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# =========================
+# Jupyter
+# =========================
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# =========================
+# Node.js / React / Vite
+# =========================
+node_modules/
+dist/
+build/
+.vite/
+coverage/
+.npm/
+.eslintcache
+
+# =========================
+# ML models & artifacts
+# =========================
+*.pkl
+*.pickle
+*.joblib
+*.h5
+*.hdf5
+*.pt
+*.pth
+*.onnx
+*.model
+
+# Keep model directory structure
+!ml/model/.gitkeep
+
+# =========================
+# Datasets & generated data
+# =========================
+data/raw/*
+data/processed/*
+data/temp/
+datasets/
+*.csv
+*.parquet
+*.feather
+*.npy
+*.npz
+
+# Keep directory placeholders
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# =========================
+# Logs & temporary files
+# =========================
+*.log
+logs/
+tmp/
+temp/
+.cache/
+*.tmp
+*.bak
+
+# =========================
+# Database
+# =========================
+*.db
+*.sqlite
+*.sqlite3
+
+# =========================
+# IDEs & editors
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# =========================
+# Build & deployment
+# =========================
+docker-compose.override.yml
