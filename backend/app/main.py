@@ -3,6 +3,7 @@ from __future__ import annotations
 import httpx
 import os
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 
 from .agent import Agent
 from .database import MeasurementStore
@@ -13,6 +14,20 @@ from ml.anomaly_detection import AnomalyDetector
 
 
 app = FastAPI(title="HMS-cr8 Backend", version="0.2.0")
+cors_origins = [
+    origin.strip()
+    for origin in os.getenv(
+        "CORS_ORIGINS",
+        "http://localhost:5173,http://127.0.0.1:5173",
+    ).split(",")
+    if origin.strip()
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_origins,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 store = MeasurementStore()
 vitaldb = VitalDBClient()
 model_path = os.getenv("HMS_MODEL_PATH", "ml/model/isolation_forest.joblib")

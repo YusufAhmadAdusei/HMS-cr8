@@ -11,6 +11,22 @@ python -m pip install -r requirements.txt
 python -m uvicorn backend.app.main:app --reload
 ```
 
+## Dashboard
+
+The React/Vite dashboard is under `frontend/`. Start the backend first, then
+run the dashboard in a separate terminal:
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+The dashboard uses `http://localhost:8000` by default. To point it at another
+FastAPI deployment, copy `frontend/.env.example` to `frontend/.env` and set
+`VITE_API_URL`. Configure the backend `CORS_ORIGINS` value with the dashboard
+origin when the frontend and API are hosted separately.
+
 Core endpoints:
 
 - `GET /health`
