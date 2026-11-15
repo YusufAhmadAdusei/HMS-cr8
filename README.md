@@ -39,6 +39,11 @@ FastAPI deployment, copy `frontend/.env.example` to `frontend/.env` and set
 `VITE_API_URL`. Configure the backend `CORS_ORIGINS` value with the dashboard
 origin when the frontend and API are hosted separately.
 
+Use **Ingest replay** in the dashboard to request the next ten-second VitalDB
+window. It requests the supported physiological tracks, stores the returned
+measurements in SQLite, and refreshes the health summary and model output.
+The dashboard does not invent sensor values when a track is unavailable.
+
 Core endpoints:
 
 - `GET /health`

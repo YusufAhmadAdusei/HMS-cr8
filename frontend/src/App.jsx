@@ -14,6 +14,15 @@ const metricLabels = {
   "Solar8000/RR": "Respiratory rate",
 };
 
+const replayTracks = [
+  "Solar8000/HR",
+  "Solar8000/NIBP_SBP",
+  "Solar8000/NIBP_DBP",
+  "Solar8000/PLETH_SPO2",
+  "Solar8000/BT",
+  "Solar8000/RR",
+];
+
 async function request(path, options = {}) {
   const response = await fetch(`${API_URL}${path}`, {
     headers: { "Content-Type": "application/json" },
@@ -59,8 +68,10 @@ function App() {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [loading, setLoading] = useState(true);
+  const [replayLoading, setReplayLoading] = useState(false);
   const [assistantLoading, setAssistantLoading] = useState(false);
   const [error, setError] = useState("");
+  const [replayMessage, setReplayMessage] = useState("");
 
   const caseQuery = selectedCase
     ? `?case_id=${encodeURIComponent(selectedCase)}`
@@ -92,13 +103,70 @@ function App() {
     loadDashboard();
   }, [loadDashboard]);
 
+  async function ingestReplay() {
+    setReplayLoading(true);
+    setError("");
+    setReplayMessage("");
+    try {
+      const latestTimestamp = measurements.reduce((latest, measurement) => {
+        if (!latest || measurement.recorded_at > latest) {
+          return measurement.recorded_at;
+        }
+        return latest;
+      }, null);
+      const nextAt = latestTimestamp
+        ? new Date(new Date(latestTimestamp).getTime() + 10_000).toISOString()
+        : null;
+      const results = await Promise.allSettled(
+        replayTracks.map((trackCode) =>
+          request("/ingest/vitaldb/replay", {
+            method: "POST",
+            body: JSON.stringify({
+              location: "OR1",
+              track_code: trackCode,
+              window_seconds: 10,
+              ...(nextAt ? { at: nextAt } : {}),
+            }),
+          }),
+        ),
+      );
+      const successful = results.filter(
+        (result) => result.status === "fulfilled",
+      );
+      const failed = results.filter((result) => result.status === "rejected");
+      if (!successful.length) {
+        throw new Error(
+          "VitalDB replay could not provide any requested physiological tracks.",
+        );
+      }
+      const received = successful.reduce(
+        (total, result) => total + result.value.received,
+        0,
+      );
+      setReplayMessage(
+        `${received} samples received across ${successful.length} of ${replayTracks.length} tracks${
+          failed.length ? `; ${failed.length} unavailable` : ""
+        }.`,
+      );
+      await loadDashboard();
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setReplayLoading(false);
+    }
+  }
+
   const latestMeasurements = useMemo(
     () =>
-      [...measurements].sort(
+      [
+        ...(summary?.latest_measurements?.length
+          ? summary.latest_measurements
+          : measurements),
+      ].sort(
         (left, right) =>
           new Date(right.recorded_at) - new Date(left.recorded_at),
       ),
-    [measurements],
+    [measurements, summary],
   );
 
   async function askAssistant(event) {
@@ -137,8 +205,12 @@ function App() {
             <span className="live-dot" />
             VitalDB connected
           </span>
-          <button className="ghost-button" onClick={loadDashboard}>
-            Refresh
+          <button
+            className="ghost-button"
+            disabled={replayLoading}
+            onClick={ingestReplay}
+          >
+            {replayLoading ? "Collecting..." : "Ingest replay"}
           </button>
         </div>
       </header>
@@ -169,6 +241,7 @@ function App() {
         </section>
 
         {error && <div className="error-banner">{error}</div>}
+        {replayMessage && <div className="success-banner">{replayMessage}</div>}
 
         <section className="metric-grid">
           <article className="metric-card accent-blue">

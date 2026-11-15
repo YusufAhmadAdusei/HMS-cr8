@@ -69,6 +69,7 @@ h3 { font-size: 18px; letter-spacing: -0.03em; }
 }
 .case-picker select:focus, .assistant-form input:focus { border-color: #8be6c5; }
 .error-banner { background: #3a1c29; border: 1px solid #8e3d57; border-radius: 8px; color: #ffb4c7; font-size: 13px; margin-bottom: 20px; padding: 13px 15px; }
+.success-banner { background: #12392f; border: 1px solid #286a57; border-radius: 8px; color: #9ce8ca; font-size: 13px; margin-bottom: 20px; padding: 13px 15px; }
 
 .metric-grid { display: grid; gap: 14px; grid-template-columns: repeat(4, 1fr); margin-bottom: 14px; }
 .metric-card { background: #0c1a2a; border: 1px solid #1b3045; border-radius: 10px; min-height: 144px; padding: 20px; position: relative; overflow: hidden; }
