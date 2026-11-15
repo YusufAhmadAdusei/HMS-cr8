@@ -36,7 +36,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-store = MeasurementStore()
+store = MeasurementStore(database_path=os.getenv("HMS_DATABASE_PATH", "data/hms.sqlite3"))
 vitaldb = VitalDBClient()
 nasa_eda = NasaEdaClient()
 model_path = os.getenv("HMS_MODEL_PATH", "ml/model/isolation_forest.joblib")

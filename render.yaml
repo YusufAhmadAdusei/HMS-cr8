@@ -2,6 +2,18 @@ services:
   - type: web
     name: hms-cr8-api
     runtime: python
-    buildCommand: pip install -r requirements.txt
+    plan: starter
+    buildCommand: pip install -r requirements-render.txt
     startCommand: uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
+    disk:
+      name: hms-cr8-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.11
+      - key: HMS_DATABASE_PATH
+        value: /var/data/hms.sqlite3
+      - key: CORS_ORIGINS
+        sync: false

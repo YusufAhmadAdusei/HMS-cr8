@@ -2,6 +2,8 @@
 
 For the full system description, data flow, current limitations, and astronaut-specific requirements, see [docs/SYSTEM_OVERVIEW.md](docs/SYSTEM_OVERVIEW.md).
 
+For production setup on Render (API) and Vercel (dashboard), see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+
 ## Backend
 
 The backend is a single FastAPI application under `backend/app/`. It ingests
