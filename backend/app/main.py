@@ -169,6 +169,33 @@ def ingest_replay(request: ReplayRequest) -> IngestResponse:
         len(measurements),
         inserted,
     )
+    if measurements:
+        latest_measurement = max(
+            measurements, key=lambda measurement: measurement.recorded_at
+        )
+        update_event = (
+            "realtime_data_updated" if inserted else "realtime_data_unchanged"
+        )
+        logger.info(
+            "%s case_id=%s metric=%s latest_recorded_at=%s latest_value=%s unit=%s "
+            "source=%s received=%d inserted=%d",
+            update_event,
+            latest_measurement.case_id,
+            latest_measurement.metric,
+            latest_measurement.recorded_at.isoformat(),
+            latest_measurement.value,
+            latest_measurement.unit or "",
+            latest_measurement.source,
+            len(measurements),
+            inserted,
+        )
+    else:
+        logger.warning(
+            "realtime_data_empty location=%s track=%s scenario=%s",
+            request.location,
+            request.track_code,
+            request.scenario,
+        )
     source = (
         "VitalDB virtual replay"
         if request.scenario == "normal"
